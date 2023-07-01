@@ -1,89 +1,61 @@
 ###################################################
-### arguments of rpanet
+### examples
 ###################################################
 library("wdnet")
 args(rpanet)
 
-
-###################################################
-### set an initial network with 
-### two edges (1, 2, 0.5), (3, 4, 2.0)
-###################################################
+# set an initial network with 
+# two edges (1, 2, 0.5), (3, 4, 2.0)
 netwk0 <- list(edgelist = matrix(c(1, 2, 3, 4), nrow = 2, byrow = TRUE),
                edgeweight = c(0.5, 2.0), directed = TRUE)
 
-
-###################################################
-### set probability of edge creation scenarios
-###################################################
+# probability of edge creation scenarios
 ctr1 <- rpa_control_scenario(alpha = 0.2, beta = 0.6, gamma = 0.2,
                              beta.loop = FALSE, source.first = FALSE)
 
-
-###################################################
-### control weight of new edges
-###################################################
+# weight of new edges
 my_rgamma <- function(n) rgamma(n, shape = 5, scale = 0.2)
 ctr2 <- ctr1 + rpa_control_edgeweight(sampler = my_rgamma)
 
-
-###################################################
-### set preference functions
-###################################################
+# preference functions
 ctr3 <- ctr2 + rpa_control_preference(
   ftype = "default",
   sparams = c(1, 2, 0, 0, 1), tparams = c(0, 0, 1, 2, 1))
 
-
-###################################################
-### generate a PA network
-###################################################
+# generate a PA network
 set.seed(12)
 netwk3 <- rpanet(nstep = 1e3, initial.network = netwk0, control = ctr3)
 names(netwk3)
 print(netwk3)
 
-
-###################################################
-### control new edges at each step
-###################################################
+# new edges at each step
 ctr4 <- ctr3 + rpa_control_newedge(
   sampler = function(n) rpois(n, 2) + 1,
   snode.replace = FALSE, tnode.replace = FALSE)
 
-
-###################################################
-### control node groups and reciprocal edges
-###################################################
+# node groups and immediate reciprocal edges
 ctr5 <- ctr4 + rpa_control_reciprocal(
   group.prob = c(0.4, 0.6),
   recip.prob = matrix(c(0.4, 0.1, 0.2, 0.5), nrow = 2, byrow = TRUE))
 
-
-###################################################
-### set an initial network,
-### specify group of nodes 1~4 and generate a PA network
-###################################################
-netwk0 <- list(edgelist = matrix(c(1, 2, 3, 4), nrow = 2, byrow = TRUE),
-               edgeweight = c(0.5, 2), directed = TRUE, nodegroup = c(1, 2, 2, 1))
+# set an initial network,
+# specify group of nodes 1~4 and generate a PA network
+netwk0 <- list(
+  edgelist = matrix(c(1, 2, 3, 4), nrow = 2, byrow = TRUE),
+  edgeweight = c(0.5, 2), directed = TRUE, nodegroup = c(1, 2, 2, 1)
+)
 netwk5 <- rpanet(1e3, control = ctr5, initial.network = netwk0)
 
-
-###################################################
-### set customized preference
-### functions through one-line c++ style expressions
-###################################################
+# set customized preference functions through one-line 
+# c++ style expressions
 ctr6 <- ctr5 + rpa_control_preference(
-  ftype = "customized", 
-  spref = "log(outs + 1) + 1", tpref = "log(ins + 1) + 1")
+  ftype = "customized",
+  spref = "log(outs + 1) + 1", tpref = "log(ins + 1) + 1"
+)
 
-
-###################################################
-### set customized preference 
-### functions using c++ codes
-###################################################
-my_spref <- RcppXPtrUtils::cppXPtr(code = 
-   "double foo(double x, double y) {
+# set customized preference functions through XPtr
+my_spref <- RcppXPtrUtils::cppXPtr(code =
+  "double foo(double x, double y) {
     if (x < 1) {
       return 1;
     } else if (x <= 100) {
@@ -92,8 +64,9 @@ my_spref <- RcppXPtrUtils::cppXPtr(code =
       return 200 * (x - 50);
     }
   }")
-ctr7 <- rpa_control_preference(ftype = "customized", spref = my_spref, 
-                               tpref = "ins + 1")
+ctr7 <- rpa_control_preference(
+  ftype = "customized", spref = my_spref, tpref = "ins + 1"
+)
 
 
 ##########################################################
@@ -105,25 +78,27 @@ library(igraph)
 library(PAFit)
 
 # rpanet controls
-control0 <- rpa_control_scenario(alpha = 1/3, 
-                                 beta = 1/3, 
-                                 gamma = 1/3, 
-                                 xi = 0, 
-                                 rho = 0) + 
+control0 <- rpa_control_scenario(alpha = 1/3,
+                                 beta = 1/3,
+                                 gamma = 1/3,
+                                 xi = 0,
+                                 rho = 0) +
   rpa_control_edgeweight(
     sampler = function(n) rgamma(n, shape = 5, scale = 0.2)
   )
-control0.5 <- control0 + 
-  rpa_control_preference(sparams = c(1, 0.5, 0, 0, 0.1), 
+control0.5 <- control0 +
+  rpa_control_preference(sparams = c(1, 0.5, 0, 0, 0.1),
                          tparams = c(0, 0, 1, 0.5, 0.1))
-control1 <- control0 + 
-  rpa_control_preference(sparams = c(1, 1, 0, 0, 0.1), 
+control1 <- control0 +
+  rpa_control_preference(sparams = c(1, 1, 0, 0, 0.1),
                          tparams = c(0, 0, 1, 1, 0.1))
-control2 <- control0 + 
-  rpa_control_preference(sparams = c(1, 2, 0, 0, 0.1), 
+control2 <- control0 +
+  rpa_control_preference(sparams = c(1, 2, 0, 0, 0.1),
                          tparams = c(0, 0, 1, 2, 0.1))
 
 # number of replicates
+# the 100 replicates were run on HPC; please change it to a smaller number
+# if you run the benchmarks on a local machine
 times <- 100
 # run benchmark
 ret_weighted_default_seed <- microbenchmark(
@@ -167,9 +142,6 @@ ret_weighted_default_seed <- microbenchmark(
 seed_nnode <- 1e4
 p <- 0.01
 
-# number of replicates
-times <- 100
-
 # generate a new initial network for each iteration of
 # all benchmark expressions
 i <- 100
@@ -193,6 +165,11 @@ new_network <- function() {
   i <<- i + 1
   return(NULL)
 }
+
+# number of replicates
+# the 100 replicates were run on HPC; please change it to a smaller number
+# if you run the benchmarks on a local machine
+times <- 100
 
 # rpanet controls
 control0 <- rpa_control_scenario(alpha = 1/3, 
@@ -253,39 +230,56 @@ ret_weighted_ER_seed <- microbenchmark(
 ### code for benchmarks: unweighted; default initial network
 ############################################################
 
-# number of replicates
-times <- 100
-
 # set an initial network for igraph
 g0 <- graph_from_edgelist(matrix(c(1, 2), nrow = 1), directed = TRUE)
 
 # rpanet controls
-control0.5 <- rpa_control_scenario(alpha = 1, beta = 0, gamma = 0, xi = 0, rho = 0) +
+control0.5 <- rpa_control_scenario(
+  alpha = 1, beta = 0, gamma = 0, xi = 0, rho = 0) +
   rpa_control_preference(tparams = c(0, 0, 1, 0.5, 0.1))
-control1 <- rpa_control_scenario(alpha = 1, beta = 0, gamma = 0, xi = 0, rho = 0) +
+control1 <- rpa_control_scenario(
+  alpha = 1, beta = 0, gamma = 0, xi = 0, rho = 0
+) +
   rpa_control_preference(tparams = c(0, 0, 1, 1, 0.1))
-control2 <- rpa_control_scenario(alpha = 1, beta = 0, gamma = 0, xi = 0, rho = 0) +
+control2 <- rpa_control_scenario(
+  alpha = 1, beta = 0, gamma = 0, xi = 0, rho = 0) +
   rpa_control_preference(tparams = c(0, 0, 1, 2, 0.1))
+
+# number of replicates
+# the 100 replicates were run on HPC; please change it to a smaller number
+# if you run the benchmarks on a local machine
+# inaddition, PAFit is time consuming, please consider excluding it
+# from the following benchmarks
+times <- 100
 
 # run benchmarks
 ret_unweighted_default_seed <- microbenchmark(
-  PAFit_k05_n1e3 = generate_net(N = 1e3 + 3, alpha = 0.5, num_seed = 2, multiple_node = 1, m = 1, s = 0, offset = 0,
+  PAFit_k05_n1e3 = generate_net(N = 1e3 + 3, alpha = 0.5, num_seed = 2, 
+                                multiple_node = 1, m = 1, s = 0, offset = 0,
                                 custom_PA = c(0:1e3)^0.5 + 0.1),
-  PAFit_k05_n1e4 = generate_net(N = 1e4 + 3, alpha = 0.5, num_seed = 2, multiple_node = 1, m = 1, s = 0, offset = 0,
+  PAFit_k05_n1e4 = generate_net(N = 1e4 + 3, alpha = 0.5, num_seed = 2, 
+                                multiple_node = 1, m = 1, s = 0, offset = 0,
                                 custom_PA = c(0:1e4)^0.5 + 0.1),
-  PAFit_k05_n1e5 = generate_net(N = 1e5 + 3, alpha = 0.5, num_seed = 2, multiple_node = 1, m = 1, s = 0, offset = 0,
+  PAFit_k05_n1e5 = generate_net(N = 1e5 + 3, alpha = 0.5, num_seed = 2, 
+                                multiple_node = 1, m = 1, s = 0, offset = 0,
                                 custom_PA = c(0:1e5)^0.5 + 0.1),
-  PAFit_k1_n1e3 =  generate_net(N = 1e3 + 3, alpha = 1,   num_seed = 2, multiple_node = 1, m = 1, s = 0, offset = 0,
+  PAFit_k1_n1e3 =  generate_net(N = 1e3 + 3, alpha = 1,   num_seed = 2, 
+                                multiple_node = 1, m = 1, s = 0, offset = 0,
                                 custom_PA = c(0:1e3) + 0.1),
-  PAFit_k1_n1e4 =  generate_net(N = 1e4 + 3, alpha = 1,   num_seed = 2, multiple_node = 1, m = 1, s = 0, offset = 0,
+  PAFit_k1_n1e4 =  generate_net(N = 1e4 + 3, alpha = 1,   num_seed = 2, 
+                                multiple_node = 1, m = 1, s = 0, offset = 0,
                                 custom_PA = c(0:1e4) + 0.1),
-  PAFit_k1_n1e5 =  generate_net(N = 1e5 + 3, alpha = 1,   num_seed = 2, multiple_node = 1, m = 1, s = 0, offset = 0,
+  PAFit_k1_n1e5 =  generate_net(N = 1e5 + 3, alpha = 1,   num_seed = 2, 
+                                multiple_node = 1, m = 1, s = 0, offset = 0,
                                 custom_PA = c(0:1e5) + 0.1),
-  PAFit_k2_n1e3 =  generate_net(N = 1e3 + 3, alpha = 2,   num_seed = 2, multiple_node = 1, m = 1, s = 0, offset = 0,
+  PAFit_k2_n1e3 =  generate_net(N = 1e3 + 3, alpha = 2,   num_seed = 2, 
+                                multiple_node = 1, m = 1, s = 0, offset = 0,
                                 custom_PA = c(0:1e3)^2 + 0.1),
-  PAFit_k2_n1e4 =  generate_net(N = 1e4 + 3, alpha = 2,   num_seed = 2, multiple_node = 1, m = 1, s = 0, offset = 0,
+  PAFit_k2_n1e4 =  generate_net(N = 1e4 + 3, alpha = 2,   num_seed = 2, 
+                                multiple_node = 1, m = 1, s = 0, offset = 0,
                                 custom_PA = c(0:1e4)^2 + 0.1),
-  PAFit_k2_n1e5 =  generate_net(N = 1e5 + 3, alpha = 2,   num_seed = 2, multiple_node = 1, m = 1, s = 0, offset = 0,
+  PAFit_k2_n1e5 =  generate_net(N = 1e5 + 3, alpha = 2,   num_seed = 2, 
+                                multiple_node = 1, m = 1, s = 0, offset = 0,
                                 custom_PA = c(0:1e5)^2 + 0.1),
   linear_k05_n1e3 = rpanet(1e3, control = control0.5, method = "linear"),
   linear_k05_n1e4 = rpanet(1e4, control = control0.5, method = "linear"),
@@ -342,9 +336,6 @@ ret_unweighted_default_seed <- microbenchmark(
 seed_nnode <- 1e4
 p <- 0.01
 
-# number of replicates
-times <- 100
-
 # generate a new initial network for each iteration of 
 # all benchmark expressions
 i <- 100
@@ -352,7 +343,8 @@ new_network <- function() {
   if (i >= 43) {
     i <<- 0
     # initial network for igraph
-    g <<- erdos.renyi.game(seed_nnode, seed_nnode^2 * p, type = "gnm", directed = TRUE, loops = TRUE)
+    g <<- erdos.renyi.game(seed_nnode, seed_nnode^2 * p, 
+                           type = "gnm", directed = TRUE, loops = TRUE)
     
     # initial network for wdnet
     edgelist <- as_edgelist(g)
@@ -364,6 +356,11 @@ new_network <- function() {
   i <<- i + 1
   return(NULL)
 }
+
+# number of replicates
+# the 100 replicates were run on HPC; please change it to a smaller number
+# if you run the benchmarks on a local machine
+times <- 100
 
 # rpanet controls
 control0.5 <- rpa_control_scenario(alpha = 1, beta = 0, gamma = 0, xi = 0, rho = 0) +
@@ -425,7 +422,7 @@ ret_unweighted_ER_seed <- microbenchmark(
 
 
 ##############################################################
-### code for benchmarks: plot results
+### plot results
 ##############################################################
 library(ggplot2)
 
@@ -464,9 +461,9 @@ collect_results <- function(ret) {
 
 # unweighted networks
 # median runtime for each combination of method, k and nstep
-ret_unweighted_default_seed <- collect_results(ret)
+ret_unweighted_default_seed <- collect_results(ret_unweighted_default_seed)
 ret_unweighted_default_seed$Type <- "Default Initial Network"
-ret_unweighted_ER_seed <- collect_results(ret)
+ret_unweighted_ER_seed <- collect_results(ret_unweighted_ER_seed)
 ret_unweighted_ER_seed$Type <- "ER Initial Network"
 
 ret_unweighted <- rbind(ret_unweighted_ER_seed, ret_unweighted_default_seed)
@@ -496,9 +493,9 @@ ggsave(filename = "unwegihted_alpha1_median.pdf", width = 8.2, height = 6)
 
 # weighted networks
 # get median runtime for each combination of method, k and nstep
-ret_weighted_default_seed <- collect_results(ret)
+ret_weighted_default_seed <- collect_results(ret_weighted_default_seed)
 ret_weighted_default_seed$Type <- "Default Initial Network"
-ret_weighted_ER_seed <- collect_results(ret)
+ret_weighted_ER_seed <- collect_results(ret_weighted_ER_seed)
 ret_weighted_ER_seed$Type <- "ER Initial Network"
 ret_weighted <- rbind(ret_weighted_ER_seed, ret_weighted_default_seed)
 ret_weighted$Type2 <- paste0(ret_weighted$Method, ret_weighted$Power)
@@ -548,9 +545,9 @@ method <- "linear"
 for (i in 1:1000) {
   temp <- rpanet(1e5, control = control, method = method)
   ret1 <- c(ret1, sum(temp$node.attr$spref[1:20]) / 
-    sum(temp$node.attr$spref))
+            sum(temp$node.attr$spref))
   ret2 <- c(ret2, sum(temp$node.attr$tpref[1:20]) / 
-    sum(temp$node.attr$tpref))
+            sum(temp$node.attr$tpref))
   rm(temp)
 }
 fivenum(ret1)
@@ -566,7 +563,7 @@ method <- "linear"
 for (i in 1:1000) {
   temp <- rpanet(1e5, control = control, method = method)
   ret <- c(ret, sum(temp$node.attr$tpref[1:20]) / 
-    sum(temp$node.attr$tpref))
+           sum(temp$node.attr$tpref))
   rm(temp)
 }
 fivenum(ret)
