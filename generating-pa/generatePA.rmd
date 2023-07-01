@@ -1224,13 +1224,10 @@ are not available in other packages.
 \section*{Supplementary material}
 
 \begin{enumerate}
-  \item[(1)] The code used for benchmarks can be found at 
-  \url{https://github.com/Yelie-Yuan/replication-code/blob/main/generating-pa/example-and-benchmark.R}.
+  \item[(1)] The code used for benchmarks and the \proglang{R Markdown} file for the paper can be found at 
+  \url{https://github.com/Yelie-Yuan/code-sharing/tree/main/generating-pa}.
   \item[(2)] The development version of the package is available at
   \url{https://gitlab.com/wdnetwork/wdnet}.
-  \item[(3)] The source code, in \proglang{R Markdown} format,
-  for this manuscript is available at
-  \url{https://github.com/Yelie-Yuan/replication-code/blob/main/generating-pa/generatePA.rmd}.
 \end{enumerate}
 
 
