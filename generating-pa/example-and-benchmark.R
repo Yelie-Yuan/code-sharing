@@ -154,9 +154,10 @@ new_network <- function() {
     )
     # initial network for wdnet
     edgelist <- as_edgelist(g)
-    initial.network <<- list(
-      "edgelist" = edgelist, directed = TRUE,
-      edgeweight = rgamma(seed_nnode^2 * p, shape = 5, scale = 0.2)
+    initial.network <<- edgelist_to_wdnet(
+      edgelist = edgelist,
+      edgeweight = rgamma(seed_nnode^2 * p, shape = 5, scale = 0.2),
+      directed = TRUE
     )
     
     stopifnot(nrow(initial.network$edgelist) == seed_nnode^2 * p)
@@ -347,8 +348,7 @@ new_network <- function() {
                            type = "gnm", directed = TRUE, loops = TRUE)
     
     # initial network for wdnet
-    edgelist <- as_edgelist(g)
-    initial.network <<- list("edgelist" = edgelist)
+    initial.network <<- igraph_to_wdnet(g)
     
     stopifnot(nrow(initial.network$edgelist) == seed_nnode^2 * p)
     stopifnot(max(initial.network$edgelist) == seed_nnode)
