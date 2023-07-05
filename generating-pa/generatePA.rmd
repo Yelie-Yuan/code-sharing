@@ -21,7 +21,7 @@ author:
   - first: Panpan
     first-init: P.
     last: Zhang
-    marker: '3,4'
+    marker: '3'
 footnote:
   - content: Corresponding author
     type: corresp               # set type for the corresponding author
@@ -41,9 +41,6 @@ affiliation:
     prefix: Department of Biostatistics
     country: USA
     marker: 3
-  - institution: Vanderbilt Memory \& Alzheimer's Center
-    country: USA
-    marker: 4
 classoption:
   - letterpaper    # or a4paper, etc.
   - inpress        # or review
@@ -140,8 +137,8 @@ models have found a wide range of applications such as friendship
 networks\ \citep{Momeni2015measuring},
 scientific collaboration networks\ \citep{Abbasi2012betweenness},
 Wikipedia networks\ \citep{Capocci2006preferential},
-and the World Wide Web\ \citep{Kong2008experience}, among others, 
-many of which are massive in scales.
+and the World Wide Web\ \citep{Kong2008experience}, among others. 
+Many of these networks are massive in scale.
 
 
 Efficient generation of large-scale PA networks is critical to the
@@ -208,10 +205,10 @@ We introduce an \proglang{R} package \pkg{wdnet}\ \citep{Rpkg:wdnet}
 for efficient generations of a general class of PA networks. The core
 algorithm is a generalization of the binary tree 
 approach\ \citep{Atwood2015efficient}. Our package contains substantial improvements
-in the flexibility for the generation of PA networks: it not only allows 
-edge directions and edge weights, but also has additional features such as
+in the flexibility for the generation of PA networks: It not only allows 
+directed edges and edge weights, but also has additional features such as
 multiple edge additions, user-defined preference functions, and 
-heterogeneous reciprocal behavior, among others. See Table\ \ref{table:packages}
+heterogeneous reciprocal edges, among others. See Table\ \ref{table:packages}
 for a summary of the features in comparison with existing packages. The
 engine under the hood is implemented in \proglang{C++} for fast speed
 and then interfaced to \proglang{R} as facilitated by package
@@ -229,7 +226,7 @@ features like adding multiple edges and reciprocal edges, and
 defining user-specified preference functions. Performance 
 comparisons are conducted in
 Section\ \ref{sec:benchmarks}. Section\ \ref{sec:discussion} concludes with a
-summary and a brief introduction of other functions beyond PA network 
+summary of the paper and a brief introduction of other functions beyond PA network 
 generation in package \pkg{wdnet}.
 
 
@@ -1187,44 +1184,50 @@ considered $k$ values.
  
 Our \proglang{R} package \pkg{wdnet} provides useful tools to
 efficiently generate large-scale PA networks. The package admits a 
-general class of PA networks with multiple edge addition scenarios, 
-weighted and directed edges, reciprocal edges, most of which are not 
-available in other existing packages. One of the most distinctive 
-features of our package is to allow users to define their own 
-preference functions. The \code{binary} algorithm guarantees the 
-efficiency of network generation analytically, and the modification of the
-\code{linear} method makes it outstanding compared to similar 
-methods in other packages. The core implementation is in
-\proglang{C++} for fast speed. 
+wide range of PA network specifications such as multiple edge addition scenarios, 
+weighted and directed edges, and reciprocal edges. Our implementations extend
+those discussed in \citet{Wan2017fitting} and \citet{Britton2020directed}, most
+of which are not available in other existing packages. A distinctive 
+feature of the package is that it allow users to define their own 
+preference functions. Our \code{binary} algorithm is efficient for general
+situations. Our \code{linear} algorithm outperforms implementations of the same
+algorithm in other packages due to its sorting step.
+The core implementation is in \proglang{C++} for fast speed. 
 
 
-The density of the resulting network, although not controlled by the generation
-algorithm, is indirectly tied to the probability of edge creation scenarios. The
-influence of the initial network on the density of the resulting network
-decreases as the network continues to grow. Other network properties, such as
-transitivity and clustering coefficient, are not considered in the current work
-and are left for future research.
+Efficient generation of PA networks facilitates investigation of PA networks
+properties and goodness-of-fit diagnosis in real applications. A PA network is
+controlled by many parameters. When theoretical properties, for example,
+transitivity and clustering coefficients, are challenging to derive, their
+empirical versions can be easily learned from generating many realizations given
+the model parameters. When the initial network size is large relative to the
+desired PA network size, its impact may not be ignorable and could be studied
+through simulations. In real applications, the goodness-of-fit diagnosis of a PA
+network can be done by generating many replicates from the fitted PA model and
+comparing the observed network statistics with the empirical distribution of the
+same statistics from the replicates. Such goodness-of-fit check may motivate
+modification of the PA networks to fit the real data better
+\citep[e.g.,][]{Wang2022generating}.
 
 
-Beyond PA network generation, \pkg{wdnet} also provides an array 
-of other functions. In particular, several centrality measures are
+Beyond general PA network generation, \pkg{wdnet} also provides a collection
+of other functions. Specifically, several centrality measures are
 available via function \code{centrality()}, including the recently
 proposed weighted PageRank centrality\ \citep{Zhang2022pagerank}. 
 Assortativity measures for weighted
 directed networks discussed in\ \citep{Yuan2021assortativity} are
 available via function \code{assortcoef()}. A degree-preserving
-rewiring algorithm that rewires an unweighted directed or unweighted
-undirected network to achieve pre-determined assortativity 
-levels\ \citep{Wang2022generating} is available via function
+rewiring algorithm for generating networks with pre-determined assortativity 
+coefficients\ \citep{Wang2022generating} is available via function
 \code{dprewire()}.
-All these functions are fresh from recent research and
-are not available in other packages.
+All these functions are derived from recent research, so they are not available 
+in other packages.
 
 
 \section*{Supplementary material}
 
 \begin{enumerate}
-  \item[(1)] The code used for benchmarks and the \proglang{R Markdown} file for the paper can be found at 
+  \item[(1)] The code used for benchmarks and the \proglang{R Markdown} source for the paper can be found at 
   \url{https://github.com/Yelie-Yuan/code-sharing/tree/main/generating-pa}.
   \item[(2)] The development version of the package is available at
   \url{https://gitlab.com/wdnetwork/wdnet}.
@@ -1253,7 +1256,7 @@ Otherwise, the source node is uniformly drawn from all existing
 nodes (regardless of their out-degrees). The sampling at each step 
 has complexity $O(1)$, thus giving complexity $O(n)$ for the entire network 
 generation process. The sampling of target nodes can be done in an 
-analogous manner, and we refer to this approach as \code{bag} in our
+analogous manner, and we call this approach \code{bag} in our
 package.
 
 
@@ -1302,10 +1305,10 @@ $\bm{\nu}(n)$) for $\tau(t + 1) \le W(t)$, which can be done efficiently using t
 \code{findInterval()} function (with time complexity $O(n\log{n})$). 
 
 We wrap up the above sampling approach 
-as \code{bagx} method in our package. Overall, although \code{bagx} 
-is not as efficient as \code{bag} in generating unweighted, linear PA 
-networks, it provides a competitive alternative to generate
-weighted PA networks, compared with the standard algorithm.
+as \code{bagx} in our package. Although \code{bagx} 
+is not as efficient as \code{bag} for generating unweighted, linear PA 
+networks, it provides a competitive alternative to generating
+weighted PA networks compared with the standard algorithm.
 
 
 \section{Advanced customized preference functions}
